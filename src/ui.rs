@@ -1,0 +1,81 @@
+use ratatui::{
+    style::{Color, Style},
+    text::{Line, Span},
+};
+
+use crate::game::GameEngine;
+
+/// Trait for rendering a game
+pub trait GameRenderer {
+    /// Render the game state as a vector of text lines
+    fn render(&self, game: &dyn GameEngine) -> Vec<Line>;
+}
+
+/// Default renderer for the 2048 game
+pub struct DefaultRenderer;
+
+impl DefaultRenderer {
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+/// Get color for a number tile
+pub fn get_color(num: u32) -> Color {
+    match num {
+        0 => Color::DarkGray,
+        2 => Color::Green,
+        4 => Color::LightYellow,
+        8 => Color::Blue,
+        16 => Color::Magenta,
+        32 => Color::Red,
+        64 => Color::Cyan,
+        _ => Color::LightCyan, // For larger numbers
+    }
+}
+
+impl GameRenderer for DefaultRenderer {
+    fn render(&self, game: &dyn GameEngine) -> Vec<Line> {
+        let mut lines = vec![];
+        lines.push(Line::from("Score: ".to_string() + &game.score().to_string()));
+
+        // Create a visual separator between score and board
+        lines.push(Line::from(""));
+
+        // For each row in the board, we'll create 3 lines to make square cells
+        for row in game.board() {
+            // Top border of the cells
+            lines.push(Line::from(
+                row.iter()
+                    .map(|&num| Span::styled("┌─────┐ ", Style::default().fg(get_color(num))))
+                    .collect::<Vec<Span>>(),
+            ));
+
+            // Cell content with the number
+            lines.push(Line::from(
+                row.iter()
+                    .map(|&num| {
+                        let content = if num == 0 {
+                            "     ".to_string()
+                        } else {
+                            format!("{:^5}", num)
+                        };
+                        Span::styled(
+                            format!("│{}│ ", content),
+                            Style::default().fg(get_color(num)),
+                        )
+                    })
+                    .collect::<Vec<Span>>(),
+            ));
+
+            // Bottom border of the cells
+            lines.push(Line::from(
+                row.iter()
+                    .map(|&num| Span::styled("└─────┘ ", Style::default().fg(get_color(num))))
+                    .collect::<Vec<Span>>(),
+            ));
+        }
+
+        lines
+    }
+}
