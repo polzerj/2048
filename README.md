@@ -17,18 +17,40 @@ tui_2048 [OPTIONS]
 - `--no-color` - Run the game without colors
 
 ## Controls
-- `w` or $\uparrow$ - Move Up
-- `s` or $\downarrow$ - Move Down
-- `a` or $\leftarrow$ - Move Left
-- `d` or $\rightarrow$ - Move Right
-- `u` or `z` - Undo the last move
-- `r` - Restart the game (after game over)
-- `q` or `ESC` - Quit
+- `w` or `↑` - Move Up
+- `s` or `↓` - Move Down
+- `a` or `←` - Move Left
+- `d` or `→` - Move Right
+- `u` or `z` - Undo last move
+- `q` or `Esc` - Quit the game
+- `r` - Restart (after game over)
 
 ## Features
-- Classic 2048 gameplay
-- Color-coded tiles for better visualization
-- Undo functionality
-- Game over screen with final score
-- Restart option after game over
+
+- Full color terminal UI
 - No-color mode for terminals with limited color support
+- Simple keyboard controls (arrow keys or WASD)
+- Undo functionality (up to 10 moves)
+- Game over detection and restart option
+
+## Code Structure
+
+- `src/app.rs` - Application logic, handling input and drawing
+- `src/game.rs` - Core game logic, board manipulation, moves and scoring
+- `src/ui.rs` - Rendering logic for the game board
+- `src/error.rs` - Custom error handling
+- `src/main.rs` - Entry point, command line argument handling
+
+## Development
+
+Run tests:
+
+```bash
+cargo test
+```
+
+Run with additional debugging:
+
+```bash
+RUST_BACKTRACE=1 cargo run
+```

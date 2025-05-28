@@ -309,4 +309,45 @@ mod tests {
         }
         assert!(false, "Board does not have a generated value");
     }
+
+    #[test]
+    fn test_undo_restores_previous_state() {
+        let mut game = Game2048::default();
+
+        // Make a move (use a controlled scenario)
+        game.board = [[2, 2, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+        game.save_state(); // Save the state before moving
+        game.move_in_direction(&MovementDirection::Left);
+
+        // Undo the move
+        let undo_success = game.undo();
+
+        // Verify undo was successful
+        assert!(undo_success, "Undo should succeed after a move");
+
+        // Verify board and score are restored
+        assert_eq!(
+            game.board,
+            [[2, 2, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+            "Board should be restored after undo"
+        );
+    }
+
+    #[test]
+    fn test_undo_limit() {
+        let mut game = Game2048::default();
+
+        // Make more moves than the undo limit
+        for _ in 0..UNDO_LIMIT + 5 {
+            game.save_state();
+        }
+
+        // We should be able to undo only up to the limit
+        for _ in 0..UNDO_LIMIT {
+            assert!(game.undo(), "Should be able to undo within the limit");
+        }
+
+        // Further undos should fail
+        assert!(!game.undo(), "Undo should fail when exceeding the limit");
+    }
 }

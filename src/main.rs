@@ -8,10 +8,11 @@ use ratatui::{Terminal, backend::CrosstermBackend};
 use std::io;
 
 use tui_2048::app::App;
+use tui_2048::error::{GameError, GameResult};
 use tui_2048::game::Game2048;
 use tui_2048::ui::{DefaultRenderer, NoColorRenderer};
 
-fn main() -> Result<(), io::Error> {
+fn main() -> GameResult<()> {
     let args = std::env::args().collect::<Vec<String>>();
     let mut use_color = true;
 
@@ -40,10 +41,7 @@ fn main() -> Result<(), io::Error> {
             }
             _ => {
                 eprintln!("Unknown option: {}", arg);
-                return Err(io::Error::new(
-                    io::ErrorKind::InvalidInput,
-                    "Invalid argument",
-                ));
+                return Err(GameError::InputError(format!("Invalid argument: {}", arg)));
             }
         }
     }
@@ -53,7 +51,7 @@ fn main() -> Result<(), io::Error> {
 }
 
 /// Run the application with proper terminal setup and cleanup
-fn run_app(use_color: bool) -> Result<(), io::Error> {
+fn run_app(use_color: bool) -> GameResult<()> {
     // Setup terminal
     let mut stdout = io::stdout();
     crossterm::terminal::enable_raw_mode()?;
@@ -82,17 +80,23 @@ fn run_app(use_color: bool) -> Result<(), io::Error> {
     // Ensure terminal state is restored even if there was an error
     let cleanup_result = restore_terminal(&mut stdout);
 
-    // Return the application result or the cleanup error if that failed
-    result.and(cleanup_result)
+    // Combine results, prioritizing the application result
+    match (result, cleanup_result) {
+        (Ok(_), Ok(_)) => Ok(()),
+        (Err(e), _) => Err(e),
+        (_, Err(e)) => Err(e),
+    }
 }
 
 /// Restore terminal to its original state
-fn restore_terminal(stdout: &mut io::Stdout) -> Result<(), io::Error> {
+fn restore_terminal(stdout: &mut io::Stdout) -> GameResult<()> {
     crossterm::terminal::disable_raw_mode()?;
 
     // We need to create another terminal instance to show the cursor
     // since the original one is moved into the app
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
-    terminal.show_cursor()
+    terminal.show_cursor()?;
+
+    Ok(())
 }

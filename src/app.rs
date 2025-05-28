@@ -15,6 +15,7 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph},
 };
 
+use crate::error::GameResult;
 use crate::game::{GameEngine, MovementDirection};
 use crate::ui::GameRenderer;
 
@@ -46,7 +47,7 @@ impl<'a, G: GameEngine + Default, R: GameRenderer> App<'a, G, R> {
     }
 
     /// Run the application
-    pub fn run(&mut self) -> Result<(), io::Error> {
+    pub fn run(&mut self) -> GameResult<()> {
         loop {
             self.draw()?;
 
@@ -98,7 +99,7 @@ impl<'a, G: GameEngine + Default, R: GameRenderer> App<'a, G, R> {
     }
 
     /// Draw the game board
-    fn draw(&mut self) -> Result<(), io::Error> {
+    fn draw(&mut self) -> GameResult<()> {
         self.terminal.draw(|f| {
             let size = f.area();
             let block = Block::default().title("2048").borders(Borders::ALL);
@@ -114,7 +115,7 @@ impl<'a, G: GameEngine + Default, R: GameRenderer> App<'a, G, R> {
     }
 
     /// Draw the game over screen
-    fn draw_game_over(&mut self) -> Result<(), io::Error> {
+    fn draw_game_over(&mut self) -> GameResult<()> {
         self.terminal.draw(|f| {
             let size = f.area();
             let block = Block::default().title("Game Over!").borders(Borders::ALL);
