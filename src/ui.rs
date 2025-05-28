@@ -14,12 +14,6 @@ pub trait GameRenderer {
 /// Default renderer for the 2048 game
 pub struct DefaultRenderer;
 
-impl DefaultRenderer {
-    pub fn new() -> Self {
-        Self
-    }
-}
-
 /// Get color for a number tile
 pub fn get_color(num: u32) -> Color {
     match num {
@@ -37,7 +31,9 @@ pub fn get_color(num: u32) -> Color {
 impl GameRenderer for DefaultRenderer {
     fn render(&self, game: &dyn GameEngine) -> Vec<Line> {
         let mut lines = vec![];
-        lines.push(Line::from("Score: ".to_string() + &game.score().to_string()));
+        lines.push(Line::from(
+            "Score: ".to_string() + &game.score().to_string(),
+        ));
 
         // Create a visual separator between score and board
         lines.push(Line::from(""));

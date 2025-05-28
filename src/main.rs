@@ -1,9 +1,6 @@
 // filepath: /home/polzerj/Documents/dev/rust/tui_2048/src/main.rs
 // src/main.rs
-use ratatui::{
-    Terminal,
-    backend::CrosstermBackend,
-};
+use ratatui::{Terminal, backend::CrosstermBackend};
 use std::io;
 
 use tui_2048::app::App;
@@ -18,18 +15,18 @@ fn main() -> Result<(), io::Error> {
     let mut terminal = Terminal::new(backend)?;
     terminal.clear()?;
     terminal.hide_cursor()?;
-    
+
     // Create game components
-    let game = Game2048::new();
-    let renderer = DefaultRenderer::new();
-    
+    let game = Game2048::default();
+    let renderer = DefaultRenderer;
+
     // Create and run the app
     let mut app = App::new(game, renderer, terminal);
     let result = app.run();
-    
+
     // Restore terminal
     crossterm::terminal::disable_raw_mode()?;
     app.terminal.show_cursor()?;
-    
+
     result
 }

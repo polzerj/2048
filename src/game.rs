@@ -33,16 +33,6 @@ pub struct Game2048 {
 }
 
 impl Game2048 {
-    pub fn new() -> Self {
-        let mut game = Self {
-            board: [[0; SIZE]; SIZE],
-            score: 0,
-        };
-        game.spawn_tile();
-        game.spawn_tile();
-        game
-    }
-
     fn spawn_tile(&mut self) {
         let empty: Vec<(usize, usize)> = self
             .board
@@ -56,9 +46,9 @@ impl Game2048 {
             })
             .collect();
         let mut rng = rand::rng();
-        empty.choose(&mut rng).map(|&(i, j)| {
+        if let Some(&(i, j)) = empty.choose(&mut rng) {
             self.board[i][j] = if rng.random_bool(0.9) { 2 } else { 4 };
-        });
+        }
     }
 
     fn merge(&mut self, line: &mut Vec<u32>) -> bool {
@@ -93,9 +83,9 @@ impl Game2048 {
         for j in 0..SIZE {
             let mut col: Vec<u32> = (0..SIZE).map(|i| self.board[i][j]).collect();
             moved |= self.merge(&mut col);
-            for i in 0..SIZE {
-                moved |= self.board[i][j] != col[i];
-                self.board[i][j] = col[i];
+            for (i, &val) in col.iter().enumerate().take(SIZE) {
+                moved |= self.board[i][j] != val;
+                self.board[i][j] = val;
             }
         }
         moved
@@ -106,9 +96,9 @@ impl Game2048 {
         for j in 0..SIZE {
             let mut col: Vec<u32> = (0..SIZE).map(|i| self.board[SIZE - 1 - i][j]).collect();
             moved |= self.merge(&mut col);
-            for i in 0..SIZE {
-                moved |= self.board[SIZE - 1 - i][j] != col[i];
-                self.board[SIZE - 1 - i][j] = col[i];
+            for (i, &val) in col.iter().enumerate().take(SIZE) {
+                moved |= self.board[SIZE - 1 - i][j] != val;
+                self.board[SIZE - 1 - i][j] = val;
             }
         }
         moved
@@ -119,9 +109,9 @@ impl Game2048 {
         for i in 0..SIZE {
             let mut row: Vec<u32> = self.board[i].to_vec();
             moved |= self.merge(&mut row);
-            for j in 0..SIZE {
-                moved |= self.board[i][j] != row[j];
-                self.board[i][j] = row[j];
+            for (j, &val) in row.iter().enumerate().take(SIZE) {
+                moved |= self.board[i][j] != val;
+                self.board[i][j] = val;
             }
         }
         moved
@@ -132,9 +122,9 @@ impl Game2048 {
         for i in 0..SIZE {
             let mut row: Vec<u32> = self.board[i].iter().rev().cloned().collect();
             moved |= self.merge(&mut row);
-            for j in 0..SIZE {
-                moved |= self.board[i][SIZE - 1 - j] != row[j];
-                self.board[i][SIZE - 1 - j] = row[j];
+            for (j, &val) in row.iter().enumerate().take(SIZE) {
+                moved |= self.board[i][SIZE - 1 - j] != val;
+                self.board[i][SIZE - 1 - j] = val;
             }
         }
         moved
@@ -182,5 +172,17 @@ impl GameEngine for Game2048 {
 
     fn board(&self) -> &[[u32; SIZE]; SIZE] {
         &self.board
+    }
+}
+
+impl Default for Game2048 {
+    fn default() -> Self {
+        let mut game = Self {
+            board: [[0; SIZE]; SIZE],
+            score: 0,
+        };
+        game.spawn_tile();
+        game.spawn_tile();
+        game
     }
 }
