@@ -1,4 +1,8 @@
-// filepath: /home/polzerj/Documents/dev/rust/tui_2048/src/app.rs
+//! Application handling module.
+//!
+//! This module provides the main application logic for the 2048 game,
+//! including key handling, drawing, and game state management.
+
 use std::io;
 use std::time::Duration;
 
@@ -13,6 +17,12 @@ use ratatui::{
 
 use crate::game::{GameEngine, MovementDirection};
 use crate::ui::GameRenderer;
+
+/// Duration to wait for key events in the main game loop
+const POLL_TIMEOUT: Duration = Duration::from_millis(500);
+
+/// Duration to wait for key events in the game over screen
+const GAME_OVER_POLL_TIMEOUT: Duration = Duration::from_millis(100);
 
 /// The application state
 pub struct App<'a, G: GameEngine + Default, R: GameRenderer> {
@@ -40,7 +50,7 @@ impl<'a, G: GameEngine + Default, R: GameRenderer> App<'a, G, R> {
         loop {
             self.draw()?;
 
-            if event::poll(Duration::from_millis(500))? {
+            if event::poll(POLL_TIMEOUT)? {
                 if let Event::Key(key) = event::read()? {
                     match key.code {
                         KeyCode::Char('q') | KeyCode::Esc => return Ok(()),
@@ -67,7 +77,7 @@ impl<'a, G: GameEngine + Default, R: GameRenderer> App<'a, G, R> {
 
                         // Wait for a key press before quitting
                         loop {
-                            if event::poll(Duration::from_millis(100))? {
+                            if event::poll(GAME_OVER_POLL_TIMEOUT)? {
                                 if let Event::Key(key) = event::read()? {
                                     match key.code {
                                         KeyCode::Char('q') | KeyCode::Esc => return Ok(()),

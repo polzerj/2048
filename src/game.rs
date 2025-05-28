@@ -1,8 +1,14 @@
-// filepath: /home/polzerj/Documents/dev/rust/tui_2048/src/game.rs
+//! Core game logic for the 2048 game.
+//!
+//! This module provides the game logic implementation for the 2048 game,
+//! including board manipulation, scoring, movement handling, and game state tracking.
+
 use rand::prelude::*;
 
+/// Size of the game board (4x4 grid)
 pub const SIZE: usize = 4;
-pub const UNDO_LIMIT: usize = 10; // Limit for undo history
+/// Maximum number of moves that can be undone
+pub const UNDO_LIMIT: usize = 10;
 
 /// Direction enum representing possible move directions
 #[derive(Debug, Clone, Copy)]
@@ -60,8 +66,10 @@ impl Game2048 {
                     .map(move |(j, _)| (i, j))
             })
             .collect();
+
         let mut rng = rand::rng();
         if let Some(&(i, j)) = empty.choose(&mut rng) {
+            // 90% chance for a 2, 10% chance for a 4
             self.board[i][j] = if rng.random_bool(0.9) { 2 } else { 4 };
         }
     }

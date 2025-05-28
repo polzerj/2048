@@ -1,4 +1,9 @@
-// src/main.rs
+//! Terminal-based 2048 game implementation using ratatui.
+//!
+//! This module contains the entry point for the TUI 2048 game.
+//! It handles command line arguments, sets up the terminal environment,
+//! and initializes the game components.
+
 use ratatui::{Terminal, backend::CrosstermBackend};
 use std::io;
 
@@ -10,6 +15,7 @@ fn main() -> Result<(), io::Error> {
     let args = std::env::args().collect::<Vec<String>>();
     let mut use_color = true;
 
+    // Parse command line arguments
     for arg in &args[1..] {
         match arg.as_str() {
             "--help" | "-h" => {
@@ -42,6 +48,12 @@ fn main() -> Result<(), io::Error> {
         }
     }
 
+    // Use a closure to ensure terminal cleanup even in case of errors
+    run_app(use_color)
+}
+
+/// Run the application with proper terminal setup and cleanup
+fn run_app(use_color: bool) -> Result<(), io::Error> {
     // Setup terminal
     let mut stdout = io::stdout();
     crossterm::terminal::enable_raw_mode()?;
@@ -53,25 +65,34 @@ fn main() -> Result<(), io::Error> {
     // Create game components
     let game = Game2048::default();
 
-    // Create and run the app with the appropriate renderer
-    let result = if use_color {
-        let renderer = DefaultRenderer;
-        let mut app = App::new(game, renderer, terminal);
-        app.run()
-    } else {
-        let renderer = NoColorRenderer;
-        let mut app = App::new(game, renderer, terminal);
-        app.run()
+    // Use a result variable to store the application outcome
+    let result = {
+        // Create and run the app with the appropriate renderer
+        if use_color {
+            let renderer = DefaultRenderer;
+            let mut app = App::new(game, renderer, terminal);
+            app.run()
+        } else {
+            let renderer = NoColorRenderer;
+            let mut app = App::new(game, renderer, terminal);
+            app.run()
+        }
     };
 
-    // Restore terminal
+    // Ensure terminal state is restored even if there was an error
+    let cleanup_result = restore_terminal(&mut stdout);
+
+    // Return the application result or the cleanup error if that failed
+    result.and(cleanup_result)
+}
+
+/// Restore terminal to its original state
+fn restore_terminal(stdout: &mut io::Stdout) -> Result<(), io::Error> {
     crossterm::terminal::disable_raw_mode()?;
 
     // We need to create another terminal instance to show the cursor
     // since the original one is moved into the app
-    let backend = CrosstermBackend::new(&mut stdout);
+    let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
-    terminal.show_cursor()?;
-
-    result
+    terminal.show_cursor()
 }

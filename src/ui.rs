@@ -1,3 +1,9 @@
+//! User interface module for the 2048 game.
+//!
+//! This module provides renderers for displaying the game board in a terminal.
+//! It includes both a colored renderer and a non-colored renderer for terminals
+//! with limited color support.
+
 use ratatui::{
     style::{Color, Style},
     text::{Line, Span},
