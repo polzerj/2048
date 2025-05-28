@@ -186,3 +186,88 @@ impl Default for Game2048 {
         game
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_game_initialization() {
+        let game = Game2048::default();
+        assert_eq!(game.score(), 0);
+        let empty_tiles: usize = game.board().iter().flatten().filter(|&&x| x == 0).count();
+        assert_eq!(empty_tiles, SIZE * SIZE - 2); // Two tiles should be spawned
+    }
+
+    #[test]
+    fn test_move_left() {
+        let mut game = Game2048::default();
+        game.board = [[2, 2, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+        game.move_in_direction(&MovementDirection::Left);
+        let expected = [[4, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]];
+        fix_gen(&mut game, &expected);
+        assert_eq!(game.board, expected);
+    }
+
+    #[test]
+    fn test_move_right() {
+        let mut game = Game2048::default();
+        game.board = [
+            [0, 0, 16, 64],
+            [4, 0, 4, 0],
+            [16, 0, 0, 16],
+            [2048, 0, 0, 16],
+        ];
+        game.move_in_direction(&MovementDirection::Right);
+        let expected = [
+            [0, 0, 16, 64],
+            [0, 0, 0, 8],
+            [0, 0, 0, 32],
+            [0, 0, 2048, 16],
+        ];
+        fix_gen(&mut game, &expected);
+        assert_eq!(game.board, expected);
+    }
+
+    #[test]
+    fn test_move_up() {
+        let mut game = Game2048::default();
+        game.board = [[2, 0, 0, 0], [2, 0, 0, 0], [4, 0, 0, 0], [8, 0, 0, 0]];
+        game.move_in_direction(&MovementDirection::Up);
+        let expected = [[4, 0, 0, 0], [4, 0, 0, 0], [8, 0, 0, 0], [0, 0, 0, 0]];
+        fix_gen(&mut game, &expected);
+        assert_eq!(game.board, expected);
+    }
+
+    #[test]
+    fn test_move_down() {
+        let mut game = Game2048::default();
+        game.board = [[0, 0, 0, 0], [2, 0, 0, 0], [2, 0, 0, 0], [4, 0, 0, 0]];
+        game.move_in_direction(&MovementDirection::Down);
+        let expected = [[0, 0, 0, 0], [0, 0, 0, 0], [4, 0, 0, 0], [4, 0, 0, 0]];
+        fix_gen(&mut game, &expected);
+        assert_eq!(game.board, expected);
+    }
+
+    #[test]
+    fn test_game_over() {
+        let mut game = Game2048::default();
+        game.board = [[2, 8, 4, 16], [8, 2, 16, 4], [32, 4, 2, 32], [2, 16, 32, 2]];
+        assert!(game.game_over());
+    }
+
+    fn fix_gen(game: &mut Game2048, expected: &[[u32; 4]; 4]) {
+        for i in 0..SIZE {
+            for j in 0..SIZE {
+                if game.board[i][j] != expected[i][j]
+                    && expected[i][j] == 0
+                    && (game.board[i][j] == 2 || game.board[i][j] == 4)
+                {
+                    game.board[i][j] = 0; // Ignore generated tiles
+                    return;
+                }
+            }
+        }
+        assert!(false, "Board does not have a generated value");
+    }
+}
