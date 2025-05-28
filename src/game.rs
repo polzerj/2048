@@ -1,6 +1,8 @@
+// filepath: /home/polzerj/Documents/dev/rust/tui_2048/src/game.rs
 use rand::prelude::*;
 
 pub const SIZE: usize = 4;
+pub const UNDO_LIMIT: usize = 10; // Limit for undo history
 
 /// Direction enum representing possible move directions
 #[derive(Debug, Clone, Copy)]
@@ -24,15 +26,28 @@ pub trait GameEngine {
 
     /// Get the current board state
     fn board(&self) -> &[[u32; SIZE]; SIZE];
+
+    /// Undo the last move if possible
+    fn undo(&mut self) -> bool;
 }
 
 /// Implementation of the 2048 game
 pub struct Game2048 {
     board: [[u32; SIZE]; SIZE],
     score: u32,
+    previous_states: Vec<([[u32; SIZE]; SIZE], u32)>, // Store previous (board, score) pairs
 }
 
 impl Game2048 {
+    /// Save the current game state before making changes
+    fn save_state(&mut self) {
+        self.previous_states.push((self.board, self.score));
+        // Limit history size to prevent excessive memory usage
+        if self.previous_states.len() > UNDO_LIMIT {
+            self.previous_states.remove(0);
+        }
+    }
+
     fn spawn_tile(&mut self) {
         let empty: Vec<(usize, usize)> = self
             .board
@@ -133,6 +148,9 @@ impl Game2048 {
 
 impl GameEngine for Game2048 {
     fn move_in_direction(&mut self, direction: &MovementDirection) -> bool {
+        // Save the current state before the move
+        self.save_state();
+
         let moved = match direction {
             MovementDirection::Up => self.move_up(),
             MovementDirection::Down => self.move_down(),
@@ -144,6 +162,8 @@ impl GameEngine for Game2048 {
             self.spawn_tile();
             true
         } else {
+            // If no tiles moved, we don't need to keep this state
+            self.previous_states.pop();
             false
         }
     }
@@ -173,6 +193,16 @@ impl GameEngine for Game2048 {
     fn board(&self) -> &[[u32; SIZE]; SIZE] {
         &self.board
     }
+
+    fn undo(&mut self) -> bool {
+        if let Some((prev_board, prev_score)) = self.previous_states.pop() {
+            self.board = prev_board;
+            self.score = prev_score;
+            true
+        } else {
+            false
+        }
+    }
 }
 
 impl Default for Game2048 {
@@ -180,6 +210,7 @@ impl Default for Game2048 {
         let mut game = Self {
             board: [[0; SIZE]; SIZE],
             score: 0,
+            previous_states: Vec::new(),
         };
         game.spawn_tile();
         game.spawn_tile();
