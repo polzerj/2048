@@ -27,14 +27,14 @@ enum MovementDirection {
 
 fn get_color(num: u32) -> Color {
     match num {
-        0 => Color::White,
+        0 => Color::DarkGray,
         2 => Color::Green,
-        4 => Color::Yellow,
+        4 => Color::LightYellow,
         8 => Color::Blue,
         16 => Color::Magenta,
         32 => Color::Red,
         64 => Color::Cyan,
-        _ => Color::DarkGray, // For larger numbers
+        _ => Color::LightCyan, // For larger numbers
     }
 }
 
@@ -177,27 +177,44 @@ impl Game2048 {
     fn render(&self) -> Vec<Line> {
         let mut lines = vec![];
         lines.push(Line::from("Score: ".to_string() + &self.score.to_string()));
-        let board: Vec<_> = self
-            .board
-            .iter()
-            .map(|row| {
-                Line::from(
-                    row.iter()
-                        .map(|&num| {
-                            if num == 0 {
-                                Span::styled("    .".to_string(), Style::default().fg(Color::White))
-                            } else {
-                                Span::styled(
-                                    format!("{:>5}", num),
-                                    Style::default().fg(get_color(num)),
-                                )
-                            }
-                        })
-                        .collect::<Vec<Span>>(),
-                )
-            })
-            .collect();
-        lines.extend(board);
+
+        // Create a visual separator between score and board
+        lines.push(Line::from(""));
+
+        // For each row in the board, we'll create 3 lines to make square cells
+        for row in &self.board {
+            // Top border of the cells
+            lines.push(Line::from(
+                row.iter()
+                    .map(|&num| Span::styled("┌─────┐ ", Style::default().fg(get_color(num))))
+                    .collect::<Vec<Span>>(),
+            ));
+
+            // Cell content with the number
+            lines.push(Line::from(
+                row.iter()
+                    .map(|&num| {
+                        let content = if num == 0 {
+                            "     ".to_string()
+                        } else {
+                            format!("{:^5}", num)
+                        };
+                        Span::styled(
+                            format!("│{}│ ", content),
+                            Style::default().fg(get_color(num)),
+                        )
+                    })
+                    .collect::<Vec<Span>>(),
+            ));
+
+            // Bottom border of the cells
+            lines.push(Line::from(
+                row.iter()
+                    .map(|&num| Span::styled("└─────┘ ", Style::default().fg(get_color(num))))
+                    .collect::<Vec<Span>>(),
+            ));
+        }
+
         lines
     }
 }
