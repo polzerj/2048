@@ -42,11 +42,11 @@ impl<'a, G: GameEngine, R: GameRenderer> App<'a, G, R> {
             if event::poll(Duration::from_millis(500))? {
                 if let Event::Key(key) = event::read()? {
                     if let Some(dir) = match key.code {
-                        KeyCode::Char('q') => return Ok(()),
-                        KeyCode::Left => Some(MovementDirection::Left),
-                        KeyCode::Right => Some(MovementDirection::Right),
-                        KeyCode::Up => Some(MovementDirection::Up),
-                        KeyCode::Down => Some(MovementDirection::Down),
+                        KeyCode::Char('q') | KeyCode::Esc => return Ok(()),
+                        KeyCode::Left | KeyCode::Char('a') => Some(MovementDirection::Left),
+                        KeyCode::Right | KeyCode::Char('d') => Some(MovementDirection::Right),
+                        KeyCode::Up | KeyCode::Char('w') => Some(MovementDirection::Up),
+                        KeyCode::Down | KeyCode::Char('s') => Some(MovementDirection::Down),
                         _ => None,
                     } {
                         self.game.move_in_direction(&dir);
